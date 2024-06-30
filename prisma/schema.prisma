@@ -1,4 +1,4 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -10,11 +10,29 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
+model Patient {
+    id          Int      @id @default(autoincrement())
+    firstName   String
+    middleName  String
+    lastName    String
+    dob         String // YYYY-MM-DD
+    status      String // Inquiry, Onboarding, Active, Churned
+    addresses   Address[]
+
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
 
-    @@index([name])
+model Address {
+    id          Int      @id @default(autoincrement())
+    patient     Patient @relation(fields: [patientId], references: [id])
+    patientId   Int
+    line1       String
+    line2       String 
+    zip         String 
+    city        String 
+    state       String 
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
