@@ -9,7 +9,7 @@ import {
   ArrowUpWideNarrow,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import { DataTable } from "./ui/data-table";
@@ -92,16 +92,23 @@ export default function PatientTable() {
   const sortBy = searchParams.get("sortBy");
   const sortDirection = searchParams.get("sortDirection");
   const status = searchParams.get("status");
-  const name = searchParams.get("name");
+  const nameParam = searchParams.get("name");
 
-  const nameDebouncedVal = useDebounce(name || "", 300);
+  const [name, setName] = useState(nameParam);
+  const debouncedName = useDebounce(name, 300);
+
+  useEffect(() => {
+    const search = new URLSearchParams(searchParams);
+    search.set("name", debouncedName || "");
+    router.push(pathname + "?" + search.toString());
+  }, [debouncedName]);
 
   const { error: paramsParseError, data: parsedParams } =
     urlParamsSchema.safeParse({
       sortBy,
       sortDirection,
       status,
-      name: nameDebouncedVal,
+      name: debouncedName,
     });
 
   useEffect(() => {
@@ -150,11 +157,8 @@ export default function PatientTable() {
     router.push(pathname + (search ? "?" + search : ""));
   };
 
-  const nameSearchOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
-    const search = new URLSearchParams(searchParams);
-    search.set("name", event.target.value);
-    router.push("?" + search.toString());
+  const nameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value);
   };
 
   return (
@@ -164,7 +168,7 @@ export default function PatientTable() {
           name="name"
           placeholder="Search by name..."
           className="flex flex-grow flex-row"
-          onChange={nameSearchOnChange}
+          onChange={nameOnChange}
           value={name || ""}
         />
         <div className="flex flex-row gap-4">
