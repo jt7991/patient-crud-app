@@ -9,7 +9,7 @@ import {
   ArrowUpWideNarrow,
 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import { DataTable } from "./ui/data-table";
@@ -84,7 +84,7 @@ const urlParamsSchema = z.object({
   name: z.string().nullish(),
 });
 
-export default function PatientTable() {
+function PTable() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -210,5 +210,12 @@ export default function PatientTable() {
         loading={patientsQuery.isLoading}
       />
     </div>
+  );
+}
+export default function PatientTable() {
+  return (
+    <Suspense>
+      <PTable />
+    </Suspense>
   );
 }
