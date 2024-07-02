@@ -2,38 +2,58 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Patient {
-    id          String      @id 
-    firstName   String
-    middleName  String
-    lastName    String
-    queryName    String
-    dob         String // YYYY-MM-DD
-    status      String // Inquiry, Onboarding, Active, Churned
-    addresses   Address[]
+  id         String    @id @default(uuid())
+  firstName  String
+  middleName String
+  lastName   String
+  queryName  String
+  dob        String // YYYY-MM-DD
+  status     String // Inquiry, Onboarding, Active, Churned
+  addresses  Address[]
 
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  AdditionalFieldResponse AdditionalFieldResponse[]
 }
 
 model Address {
-    id          String      @id
-    patient     Patient @relation(fields: [patientId], references: [id])
-    patientId   String
-    line1       String
-    line2       String 
-    zip         String 
-    city        String 
-    state       String 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(uuid())
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  patientId String
+  line1     String
+  line2     String
+  zip       String
+  city      String
+  state     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AdditionalField {
+  id                      String                    @id @default(uuid())
+  value                   String
+  type                    String // Text, Number
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  AdditionalFieldResponse AdditionalFieldResponse[]
+}
+
+model AdditionalFieldResponse {
+  id        String          @id @default(uuid())
+  patient   Patient         @relation(fields: [patientId], references: [id])
+  patientId String
+  field     AdditionalField @relation(fields: [fieldId], references: [id])
+  fieldId   String
+  value     String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }

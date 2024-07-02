@@ -1,0 +1,170 @@
+[
+  {
+    "schemaName": "",
+    "tableName": "AdditionalField",
+    "predictions": [
+      {
+        "input": " additional_field id",
+        "column": "id",
+        "shape": "UUID",
+        "confidence": 0.993504524230957,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " additional_field type",
+        "column": "type",
+        "shape": "SYSTEM_MIME_TYPE",
+        "confidence": 0.3840190470218658,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " additional_field value",
+        "column": "value",
+        "shape": "PERSON_JOB_AREA",
+        "confidence": 0.6285226941108704,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      }
+    ]
+  },
+  {
+    "schemaName": "",
+    "tableName": "AdditionalFieldResponse",
+    "predictions": [
+      {
+        "input": " additional_field_response id",
+        "column": "id",
+        "shape": "UUID",
+        "confidence": 0.5944851636886597,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " additional_field_response value",
+        "column": "value",
+        "shape": "INTERNET_HTTP_STATUS_CODE",
+        "confidence": 0.5681846141815186,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      }
+    ]
+  },
+  {
+    "schemaName": "",
+    "tableName": "Address",
+    "predictions": [
+      {
+        "input": " address city",
+        "column": "city",
+        "shape": "CITY",
+        "confidence": 0.9810330867767334,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " address id",
+        "column": "id",
+        "shape": "UUID",
+        "confidence": 0.9198170304298401,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " address line_1",
+        "column": "line1",
+        "shape": "STREET_ADDRESS",
+        "confidence": 0.9943807721138,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " address line_2",
+        "column": "line2",
+        "shape": "STREET_ADDRESS",
+        "confidence": 0.944911539554596,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " address state",
+        "column": "state",
+        "shape": "STATE",
+        "confidence": 0.9855501651763916,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " address zip",
+        "column": "zip",
+        "shape": "ZIP_CODE",
+        "confidence": 0.992558479309082,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      }
+    ]
+  },
+  {
+    "schemaName": "",
+    "tableName": "Patient",
+    "predictions": [
+      {
+        "input": " patient dob",
+        "column": "dob",
+        "shape": "INTERNET_DOMAIN_NAME",
+        "confidence": 0.09850241988897324,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " patient first_name",
+        "column": "firstName",
+        "shape": "PERSON_FIRST_NAME",
+        "confidence": 0.9923014640808105,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " patient id",
+        "column": "id",
+        "shape": "UUID",
+        "confidence": 0.996346652507782,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " patient last_name",
+        "column": "lastName",
+        "shape": "PERSON_LAST_NAME",
+        "confidence": 0.9923765063285828,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " patient middle_name",
+        "column": "middleName",
+        "shape": "PERSON_MIDDLE_NAME",
+        "confidence": 0.9910133481025696,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " patient query_name",
+        "column": "queryName",
+        "shape": "SYSTEM_FILE_NAME",
+        "confidence": 0.9779606461524963,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      },
+      {
+        "input": " patient status",
+        "column": "status",
+        "shape": "STATUS",
+        "confidence": 0.8774716854095459,
+        "context": "GENERAL",
+        "confidenceContext": 0
+      }
+    ]
+  }
+]

@@ -14,6 +14,9 @@
     "lint": "next lint",
     "start": "next start"
   },
+  "prisma": {
+    "seed": "npx tsx ./seed.ts"
+  },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
     "@prisma/client": "^5.14.0",
@@ -44,6 +47,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@snaplet/copycat": "^5.0.0",
+    "@snaplet/seed": "^0.97.20",
     "@types/eslint": "^8.56.2",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20.11.20",
