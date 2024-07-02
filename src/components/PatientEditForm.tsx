@@ -1,27 +1,16 @@
 "use client";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { PATIENT_STATUSES } from "@/lib/consts";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save } from "lucide-react";
+import { Pencil, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Control, useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { FormCtx } from "./forms/FormContext";
+import FormSelect from "./forms/FormSelect";
+import { FormTextInput } from "./forms/FormTextInput";
 import { Button } from "./ui/button";
 
 const formSchema = z.object({
@@ -46,39 +35,14 @@ type FormType = z.infer<typeof formSchema>;
 
 type FormKeys = keyof FormType;
 
-const PatientEditFormInput = ({
-  formControl,
-  name,
-  label,
-  placeholder,
-}: {
-  formControl: Control<FormType>;
-  name: FormKeys;
-  label: string;
-  placeholder?: string;
-}) => {
-  return (
-    <FormField
-      control={formControl}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Input placeholder={placeholder ?? label} {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-};
-
 type PatientEditFormProps = {
   patient: z.infer<typeof formSchema> & { id: number };
 };
 
 export default function PatientEditForm({ patient }: PatientEditFormProps) {
+  // If no patient is passed in, a patient is being created
+  const isCreatingPatient = !patient;
+  const [isEditing, setIsEditing] = useState(isCreatingPatient);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: patient,
@@ -90,89 +54,94 @@ export default function PatientEditForm({ patient }: PatientEditFormProps) {
   const updatePatient = api.patient.update.useMutation();
 
   const onSubmit = () => {
-    if (patient) {
-      return updatePatient.mutate(
-        { id: patient.id, ...form.getValues() },
-        {
-          onSuccess: () => {
-            return router.refresh();
-          },
+    if (isCreatingPatient) {
+      return createPatient.mutate(form.getValues(), {
+        onSuccess: (data) => {
+          setIsEditing(false);
+          return router.push(`/patients/${data.id}`);
         },
-      );
+      });
     }
-    return createPatient.mutate(form.getValues(), {
-      onSuccess: (data) => {
-        return router.push(`/patients/${data.id}`);
+
+    return updatePatient.mutate(
+      { id: patient.id, ...form.getValues() },
+      {
+        onSuccess: () => {
+          setIsEditing(false);
+          return router.refresh();
+        },
       },
-    });
+    );
   };
 
   return (
-    <Form {...form}>
-      <form
-        className="flex flex-col gap-6 p-10"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        <div className="grid w-full grid-cols-3 gap-6 ">
-          <PatientEditFormInput
-            formControl={form.control}
-            name="firstName"
-            label="First name"
-            placeholder="John"
-          />
-          <PatientEditFormInput
-            formControl={form.control}
-            name="middleName"
-            label="Middle name"
-            placeholder="Anthony"
-          />
-          <PatientEditFormInput
-            formControl={form.control}
-            name="lastName"
-            label="Last name"
-            placeholder="Smith"
-          />
-          <PatientEditFormInput
-            formControl={form.control}
-            name="dob"
-            label="Date of birth"
-            placeholder="mm/dd/yyyy"
-          />
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select the patient's status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Inquiry">Inquiry</SelectItem>
-                    <SelectItem value="Onboarding">Onboarding</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Churned">Churned</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+    <div className="flex flex-col p-10">
+      <div className="flex flex-row justify-between border-b-2 border-b-primary">
+        <h2 className="text-xl font-bold">Personal information</h2>
         <Button
-          type="submit"
-          className="flex w-min flex-row gap-1 self-end text-sm "
-          disabled={createPatient.isPending}
+          size="sm"
+          variant="secondary"
+          className="flex flex-row gap-1"
+          onClick={() => setIsEditing(!isEditing)}
         >
-          <Save className="w-5" /> Save
+          {isEditing ? (
+            <X className="h-5 w-5 text-primary" />
+          ) : (
+            <Pencil className="h-5 w-5 text-primary" />
+          )}
+          {isEditing ? "Cancel" : "Edit"}
         </Button>
-      </form>
-    </Form>
+      </div>
+      <FormCtx.Provider value={{ isEditing, form }}>
+        <Form {...form}>
+          <form
+            className="flex flex-col gap-6 p-2  pt-4"
+            onSubmit={form.handleSubmit(onSubmit)}
+          >
+            <div className="grid w-full grid-cols-3 gap-6 ">
+              <FormTextInput
+                name="firstName"
+                label="First name"
+                placeholder="John"
+              />
+              <FormTextInput
+                name="middleName"
+                label="Middle name"
+                placeholder="Anthony"
+              />
+              <FormTextInput
+                name="lastName"
+                label="Last name"
+                placeholder="Smith"
+              />
+              <FormTextInput
+                name="dob"
+                label="Date of birth"
+                placeholder="mm/dd/yyyy"
+              />
+              <FormSelect
+                label="Status"
+                name="status"
+                options={PATIENT_STATUSES.map((status) => ({
+                  value: status,
+                  label: status,
+                }))}
+                placeholder="Select the patient's status"
+              />
+            </div>
+            {isEditing && (
+              <Button
+                type="submit"
+                className="flex w-min flex-row gap-1 self-end text-sm "
+                loading={createPatient.isPending || updatePatient.isPending}
+                icon={<Save className="h-5 w-5" />}
+              >
+                Save
+              </Button>
+            )}
+          </form>
+        </Form>
+      </FormCtx.Provider>
+    </div>
   );
 }

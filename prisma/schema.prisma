@@ -11,7 +11,7 @@ datasource db {
 }
 
 model Patient {
-    id          Int      @id @default(autoincrement())
+    id          String      @id 
     firstName   String
     middleName  String
     lastName    String
@@ -25,9 +25,9 @@ model Patient {
 }
 
 model Address {
-    id          Int      @id @default(autoincrement())
+    id          String      @id
     patient     Patient @relation(fields: [patientId], references: [id])
-    patientId   Int
+    patientId   String
     line1       String
     line2       String 
     zip         String 
