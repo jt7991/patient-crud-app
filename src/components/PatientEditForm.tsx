@@ -34,7 +34,7 @@ const formSchema = z.object({
 type FormType = z.infer<typeof formSchema>;
 
 type PatientEditFormProps = {
-  patient: z.infer<typeof formSchema> & { id: string };
+  patient?: FormType & { id: string };
 };
 
 export default function PatientEditForm({ patient }: PatientEditFormProps) {
