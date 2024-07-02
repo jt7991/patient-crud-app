@@ -15,6 +15,7 @@ model Patient {
     firstName   String
     middleName  String
     lastName    String
+    queryName    String
     dob         String // YYYY-MM-DD
     status      String // Inquiry, Onboarding, Active, Churned
     addresses   Address[]

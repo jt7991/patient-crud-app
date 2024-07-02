@@ -2,6 +2,7 @@
 import { PATIENT_STATUSES } from "@/lib/consts";
 import { api } from "@/trpc/react";
 import { ColumnDef, HeaderContext, SortingState } from "@tanstack/react-table";
+import { useDebounce } from "@uidotdev/usehooks";
 import {
   ArrowDownWideNarrow,
   ArrowUpDown,
@@ -12,11 +13,16 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import { DataTable } from "./ui/data-table";
-
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-}
+import { Input } from "./ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type PatientListItem = {
   id: string;
@@ -72,8 +78,10 @@ const columns: ColumnDef<PatientListItem>[] = [
 ];
 
 const urlParamsSchema = z.object({
-  sortBy: z.enum(["name", "age", "status"]),
-  sortDirection: z.enum(["asc", "desc"]),
+  sortBy: z.enum(["name", "age", "status", ""]).nullish(),
+  sortDirection: z.enum(["asc", "desc", ""]).nullish(),
+  status: z.enum([...PATIENT_STATUSES, "all", ""]).nullish(),
+  name: z.string().nullish(),
 });
 
 export default function PatientTable() {
@@ -83,14 +91,22 @@ export default function PatientTable() {
 
   const sortBy = searchParams.get("sortBy");
   const sortDirection = searchParams.get("sortDirection");
+  const status = searchParams.get("status");
+  const name = searchParams.get("name");
+
+  const nameDebouncedVal = useDebounce(name || "", 300);
+
   const { error: paramsParseError, data: parsedParams } =
     urlParamsSchema.safeParse({
       sortBy,
       sortDirection,
+      status,
+      name: nameDebouncedVal,
     });
 
   useEffect(() => {
     if (paramsParseError) {
+      console.error(paramsParseError);
       router.push(pathname);
     }
   }, [paramsParseError]);
@@ -100,7 +116,12 @@ export default function PatientTable() {
       field: parsedParams?.sortBy || "name",
       direction: parsedParams?.sortDirection || "asc",
     },
+    filter: {
+      name: parsedParams?.name || undefined,
+      status: parsedParams?.status || undefined,
+    },
   });
+
   const updateSort = (
     stateOrFn: SortingState | ((old: SortingState) => SortingState),
   ) => {
@@ -113,14 +134,65 @@ export default function PatientTable() {
       state = stateOrFn;
     }
 
-    router.push(
-      pathname +
-        `?sortBy=${state[0]?.id}&sortDirection=${state[0]?.desc ? "desc" : "asc"}`,
-    );
+    const searchParams = new URLSearchParams();
+    searchParams.set("sortBy", state[0]?.id || "");
+    searchParams.set("sortDirection", state[0]?.desc ? "desc" : "asc");
+
+    if (status) {
+      searchParams.set("status", status);
+    }
+
+    if (name) {
+      searchParams.set("name", name);
+    }
+
+    const search = searchParams.toString();
+    router.push(pathname + (search ? "?" + search : ""));
+  };
+
+  const nameSearchOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const search = new URLSearchParams(searchParams);
+    search.set("name", event.target.value);
+    router.push("?" + search.toString());
   };
 
   return (
-    <div className="p-10">
+    <div className="flex flex-col gap-4 p-10">
+      <div className="flex w-full  flex-row gap-4">
+        <Input
+          name="name"
+          placeholder="Search by name..."
+          className="flex flex-grow flex-row"
+          onChange={nameSearchOnChange}
+          value={name || ""}
+        />
+        <div className="flex flex-row gap-4">
+          <Select
+            onValueChange={(val) => {
+              const searchParams = new URLSearchParams();
+              searchParams.set("status", val);
+              router.push(pathname + "?" + searchParams.toString());
+            }}
+            value={status || "all"}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Status</SelectLabel>
+                <SelectItem value="all">All statuses</SelectItem>
+                {PATIENT_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <DataTable
         sortState={[
           {

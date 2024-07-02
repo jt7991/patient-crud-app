@@ -8,6 +8,12 @@ const nameTransformer = (val: string) => {
   let res = val.trim();
   return res.charAt(0).toUpperCase() + res.slice(1);
 };
+
+// This will be used for searching
+const getFullName = (first: string, last: string) => {
+  return `${first.toLowerCase()}${last.toLowerCase()}`;
+};
+
 const patientEditUpdateSchema = z.object({
   firstName: z.string().min(1).transform(nameTransformer),
   middleName: z.string().min(1).transform(nameTransformer),
@@ -29,7 +35,11 @@ export const patientRouter = createTRPCRouter({
     .input(patientEditUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.patient.create({
-        data: { ...input, id: randomUUID() },
+        data: {
+          ...input,
+          id: randomUUID(),
+          queryName: getFullName(input.firstName, input.lastName),
+        },
       });
     }),
 
@@ -38,7 +48,10 @@ export const patientRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...rest } = input;
       return ctx.db.patient.update({
-        data: rest,
+        data: {
+          ...rest,
+          queryName: getFullName(input.firstName, input.lastName),
+        },
         where: { id },
       });
     }),
@@ -47,16 +60,24 @@ export const patientRouter = createTRPCRouter({
     .input(
       z
         .object({
-          sort: z.object({
-            field: z.enum(["name", "age", "status"]),
-            direction: z.enum(["asc", "desc"]),
-          }),
+          sort: z
+            .object({
+              field: z.enum(["name", "age", "status"]),
+              direction: z.enum(["asc", "desc"]),
+            })
+            .optional(),
+          filter: z
+            .object({
+              status: z.enum([...PATIENT_STATUSES, "all"]).optional(),
+              name: z.string().optional(),
+            })
+            .optional(),
         })
         .nullish(),
     )
     .query(async ({ ctx, input }) => {
       let orderBy;
-      switch (input?.sort.field) {
+      switch (input?.sort?.field) {
         case "name":
           orderBy = { lastName: input?.sort.direction };
           break;
@@ -74,8 +95,20 @@ export const patientRouter = createTRPCRouter({
         default:
           orderBy = { lastName: "desc" } as const;
       }
+
+      console.log("name", input?.filter?.name);
+
       const patients = await ctx.db.patient.findMany({
         orderBy,
+        where: {
+          status:
+            !input?.filter?.status || input?.filter?.status === "all"
+              ? undefined
+              : input?.filter?.status,
+          queryName: input?.filter?.name
+            ? { contains: input?.filter?.name.toLowerCase().replace(/\s/g, "") }
+            : undefined,
+        },
       });
 
       return patients.map((patient) => ({
