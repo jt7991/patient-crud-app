@@ -18,9 +18,9 @@
           "isId": true
         },
         {
-          "id": "AdditionalField.value",
-          "name": "value",
-          "columnName": "value",
+          "id": "AdditionalField.name",
+          "name": "name",
+          "columnName": "name",
           "type": "text",
           "isRequired": true,
           "kind": "scalar",

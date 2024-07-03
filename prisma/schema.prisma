@@ -41,8 +41,10 @@ model Address {
 
 model AdditionalField {
   id                      String                    @id @default(uuid())
-  value                   String
+  name                   String
   type                    String // Text, Number
+  // Soft deletes to prevent data loss
+  deleted                 Boolean                   @default(false)
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
   AdditionalFieldResponse AdditionalFieldResponse[]

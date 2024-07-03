@@ -1,3 +1,4 @@
+import { fieldsRouter } from "@/server/api/routers/fields";
 import { patientRouter } from "@/server/api/routers/patients";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
@@ -8,6 +9,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   patient: patientRouter,
+  fields: fieldsRouter,
 });
 
 // export type definition of API

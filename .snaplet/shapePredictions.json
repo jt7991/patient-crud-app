@@ -12,18 +12,18 @@
         "confidenceContext": 0
       },
       {
-        "input": " additional_field type",
-        "column": "type",
-        "shape": "SYSTEM_MIME_TYPE",
-        "confidence": 0.3840190470218658,
+        "input": " additional_field name",
+        "column": "name",
+        "shape": "PERSON_FULL_NAME",
+        "confidence": 0.2041075080633163,
         "context": "GENERAL",
         "confidenceContext": 0
       },
       {
-        "input": " additional_field value",
-        "column": "value",
-        "shape": "PERSON_JOB_AREA",
-        "confidence": 0.6285226941108704,
+        "input": " additional_field type",
+        "column": "type",
+        "shape": "SYSTEM_MIME_TYPE",
+        "confidence": 0.3840190470218658,
         "context": "GENERAL",
         "confidenceContext": 0
       }
