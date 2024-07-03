@@ -36,7 +36,7 @@ export default function RootLayout({
             <NavLink href="/patients" label="Patients" />
             <NavLink href="/admin" label="Admin" />
           </nav>
-          <main className="h-full w-full bg-slate-50">{children}</main>
+          <main className="flex h-full bg-zinc-100">{children}</main>
         </TRPCReactProvider>
       </body>
     </html>

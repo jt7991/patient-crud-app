@@ -78,7 +78,7 @@ export default function PatientEditForm({ patient }: PatientEditFormProps) {
         <h2 className="text-xl font-bold">Personal information</h2>
         <Button
           size="sm"
-          variant="secondary"
+          variant="ghost"
           className="flex flex-row gap-1"
           onClick={() => setIsEditing(!isEditing)}
         >

@@ -7,7 +7,9 @@ import {
   ArrowDownWideNarrow,
   ArrowUpDown,
   ArrowUpWideNarrow,
+  MoveRight,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { z } from "zod";
@@ -64,14 +66,13 @@ const columns: ColumnDef<PatientListItem>[] = [
   {
     id: "view",
     cell: ({ row }) => {
-      const router = useRouter();
       return (
-        <Button
-          variant="secondary"
-          onClick={() => router.push(`/patients/${row.original.id}`)}
-        >
-          View
-        </Button>
+        <Link href={`/patients/${row.original.id}`}>
+          <Button variant="link">
+            Go to patient chart
+            <MoveRight className="h-4 w-4" />
+          </Button>
+        </Link>
       );
     },
   },
