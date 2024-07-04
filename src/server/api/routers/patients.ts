@@ -20,7 +20,7 @@ const patientEditUpdateSchema = z.object({
   lastName: z.string().min(1).transform(nameTransformer),
   dob: z
     .string()
-    .regex(/(0[1-9]|1[1,2])(\/|-)(0[1-9]|[12][0-9]|3[01])(\/|-)(19|20)\d{2}/, {
+    .regex(/^(0[1-9]|1[0-2])\/(0[1-9]|1\d|2\d|3[01])\/(19|20)\d{2}$/, {
       message: "Must be in the form mm/dd/yyyy",
     })
     // convert to YYYY-MM-DD for easier sorting
@@ -55,7 +55,6 @@ export const patientRouter = createTRPCRouter({
         where: { id },
       });
     }),
-
   list: publicProcedure
     .input(
       z
@@ -119,9 +118,29 @@ export const patientRouter = createTRPCRouter({
       }));
     }),
   getById: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    console.log("Gettin patient info");
     const patient = await ctx.db.patient.findUnique({
       where: { id: input },
     });
+
+    const additionalInfo = await ctx.db.additionalField.findMany({
+      include: {
+        additionalFieldResponses: {
+          where: { patientId: input },
+          take: 1,
+        },
+      },
+      where: { deleted: false },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const additionalInfoCleaned = additionalInfo.map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      value: entry.additionalFieldResponses[0]?.value || "",
+      type: entry.type,
+    }));
+
     if (!patient) {
       return null;
     }
@@ -131,6 +150,23 @@ export const patientRouter = createTRPCRouter({
       // Parse the status to ensure it's valid. Sqlite doesn't have enum support
       status: z.enum(PATIENT_STATUSES).parse(patient?.status),
       dob: dayjs(patient.dob).format("MM/DD/YYYY"),
+      additionalInfo: additionalInfoCleaned,
     };
   }),
+  updateAdditionalInfo: publicProcedure
+    .input(
+      z.object({
+        patientId: z.string(),
+        data: z.record(z.string(), z.string().or(z.undefined())),
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.db.additionalFieldResponse.createMany({
+        data: Object.entries(input.data).map(([fieldId, value]) => ({
+          value: value || "",
+          fieldId,
+          patientId: input.patientId,
+        })),
+      });
+    }),
 });

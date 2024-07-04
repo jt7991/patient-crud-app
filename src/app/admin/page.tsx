@@ -44,9 +44,7 @@ const NewFieldFormRow = ({
   });
 
   const handleSubmit = async () => {
-    console.log("Submitting", form.getValues());
     if (await form.trigger()) {
-      console.log("Valid", form.getValues());
       onSubmit(form.getValues());
     }
   };

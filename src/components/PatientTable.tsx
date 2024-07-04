@@ -67,7 +67,7 @@ const columns: ColumnDef<PatientListItem>[] = [
     id: "view",
     cell: ({ row }) => {
       return (
-        <Link href={`/patients/${row.original.id}`}>
+        <Link prefetch={false} href={`/patients/${row.original.id}`}>
           <Button variant="link">
             Go to patient chart
             <MoveRight className="h-4 w-4" />

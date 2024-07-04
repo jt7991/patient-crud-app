@@ -5,7 +5,7 @@ export const fieldsRouter = createTRPCRouter({
   list: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.additionalField.findMany({
       where: { deleted: false },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
     });
   }),
   delete: publicProcedure.input(z.string()).mutation(async ({ ctx, input }) => {

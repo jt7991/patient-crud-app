@@ -23,7 +23,7 @@ model Patient {
 
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
-  AdditionalFieldResponse AdditionalFieldResponse[]
+  additionalFieldResponses AdditionalFieldResponse[]
 }
 
 model Address {
@@ -47,7 +47,7 @@ model AdditionalField {
   deleted                 Boolean                   @default(false)
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
-  AdditionalFieldResponse AdditionalFieldResponse[]
+  additionalFieldResponses AdditionalFieldResponse[]
 }
 
 model AdditionalFieldResponse {

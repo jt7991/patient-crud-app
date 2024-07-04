@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export default function ReadOnlyFieldView({
   label,
   value,
@@ -10,7 +12,14 @@ export default function ReadOnlyFieldView({
       <label className="text-sm font-medium text-muted-foreground">
         {label}
       </label>
-      <p className="text-foreground">{value}</p>
+      <p
+        className={cn({
+          "text-sm text-foreground": !value,
+          "text-foreground": value,
+        })}
+      >
+        {value ? value : "No data"}
+      </p>
     </div>
   );
 }

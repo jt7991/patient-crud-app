@@ -13,10 +13,12 @@ export const FormTextInput = ({
   name,
   label,
   placeholder,
+  type,
 }: {
   name: string;
   label: string;
   placeholder?: string;
+  type?: string;
 }) => {
   const { form, isEditing } = useFormCtx();
   if (isEditing) {
@@ -28,7 +30,11 @@ export const FormTextInput = ({
           <FormItem>
             <FormLabel>{label}</FormLabel>
             <FormControl>
-              <Input placeholder={placeholder ?? label} {...field} />
+              <Input
+                placeholder={placeholder ?? label}
+                type={type}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
