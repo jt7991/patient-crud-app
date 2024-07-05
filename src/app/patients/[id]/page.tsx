@@ -1,4 +1,5 @@
 "use client";
+import AddressSection from "@/components/AddressSection";
 import PatientEditAdditionalFields from "@/components/PatientEditAdditionalFields";
 import PatientEditForm from "@/components/PatientEditForm";
 import { api } from "@/trpc/react";
@@ -23,8 +24,8 @@ export default function PatientProfile({ params }: { params: { id: string } }) {
 
   const name = `${patientQuery.data.firstName} ${patientQuery.data.lastName}`;
   return (
-    <div className="flex h-full w-full flex-col">
-      <div className="flex flex-row items-center gap-4 pl-6 pt-6">
+    <div className="flex w-full flex-col p-10">
+      <div className="flex flex-row items-center gap-4 pl-6">
         <CircleUserRound className="h-24 w-24" />
         <h1 className="text-3xl font-bold">{name}</h1>
       </div>
@@ -32,6 +33,10 @@ export default function PatientProfile({ params }: { params: { id: string } }) {
       <PatientEditAdditionalFields
         patientId={params.id}
         patientAdditionalInfo={patientQuery.data.additionalInfo}
+      />
+      <AddressSection
+        patientId={params.id}
+        addresses={patientQuery?.data?.addresses || []}
       />
     </div>
   );

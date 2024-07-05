@@ -24,7 +24,7 @@ export function EditableSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full w-full flex-col px-10 pb-0 pt-10 ">
+    <div className="flex  w-full flex-col px-10 pb-0 pt-10 ">
       <div className="flex flex-row justify-between border-b-2 border-b-primary">
         <h2 className="text-xl font-bold">{name}</h2>
         <Button

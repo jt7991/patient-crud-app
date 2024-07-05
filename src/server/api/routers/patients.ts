@@ -117,10 +117,11 @@ export const patientRouter = createTRPCRouter({
         id: patient.id,
       }));
     }),
+
   getById: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    console.log("Gettin patient info");
     const patient = await ctx.db.patient.findUnique({
       where: { id: input },
+      include: { addresses: true },
     });
 
     const additionalInfo = await ctx.db.additionalField.findMany({
@@ -133,6 +134,16 @@ export const patientRouter = createTRPCRouter({
       where: { deleted: false },
       orderBy: { createdAt: "asc" },
     });
+
+    const addresses = patient?.addresses.map((address) => ({
+      id: address.id,
+      line1: address.line1,
+      line2: address.line2,
+      city: address.city,
+      state: address.state,
+      zip: address.zip,
+      isPrimary: address.id === patient.primaryAddressId,
+    }));
 
     const additionalInfoCleaned = additionalInfo.map((entry) => ({
       id: entry.id,
@@ -147,6 +158,7 @@ export const patientRouter = createTRPCRouter({
 
     return {
       ...patient,
+      addresses,
       // Parse the status to ensure it's valid. Sqlite doesn't have enum support
       status: z.enum(PATIENT_STATUSES).parse(patient?.status),
       dob: dayjs(patient.dob).format("MM/DD/YYYY"),

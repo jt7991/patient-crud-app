@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -12,41 +12,45 @@ datasource db {
 }
 
 model Patient {
-  id         String    @id @default(uuid())
-  firstName  String
-  middleName String
-  lastName   String
-  queryName  String
-  dob        String // YYYY-MM-DD
-  status     String // Inquiry, Onboarding, Active, Churned
-  addresses  Address[]
+  id               String    @id @default(uuid())
+  firstName        String
+  middleName       String
+  lastName         String
+  queryName        String
+  dob              String // YYYY-MM-DD
+  status           String // Inquiry, Onboarding, Active, Churned
+  addresses        Address[] @relation("patient_addresses")
+  primaryAddress   Address?  @relation("primary_address", fields: [primaryAddressId], references: [id])
+  primaryAddressId String?   @unique
 
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
   additionalFieldResponses AdditionalFieldResponse[]
 }
 
 model Address {
-  id        String   @id @default(uuid())
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  patientId String
-  line1     String
-  line2     String
-  zip       String
-  city      String
-  state     String
+  id             String   @id @default(uuid())
+  patient        Patient  @relation("patient_addresses", fields: [patientId], references: [id])
+  primaryPatient Patient? @relation("primary_address")
+  patientId      String
+  line1          String
+  line2          String?
+  zip            String
+  city           String
+  state          String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model AdditionalField {
-  id                      String                    @id @default(uuid())
-  name                   String
-  type                    String // Text, Number
+  id                       String                    @id @default(uuid())
+  name                     String
+  type                     String // Text, Number
   // Soft deletes to prevent data loss
-  deleted                 Boolean                   @default(false)
-  createdAt               DateTime                  @default(now())
-  updatedAt               DateTime                  @updatedAt
+  deleted                  Boolean                   @default(false)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
   additionalFieldResponses AdditionalFieldResponse[]
 }
 

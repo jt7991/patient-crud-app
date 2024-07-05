@@ -15,7 +15,7 @@ export const useFormCtx = () => {
   const ctx = useContext(FormCtx);
   const form = ctx.form;
   if (!form) {
-    throw new Error("useFormContext must be used within PatientEditForm");
+    throw new Error("useFormContext must be used within a FormCtx.Provider");
   }
   return { ...ctx, form };
 };

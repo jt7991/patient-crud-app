@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "flex min-h-screen flex-col bg-background font-sans antialiased",
+          "flex flex-col  bg-background font-sans antialiased",
           fontSans.variable,
         )}
       >
@@ -36,7 +36,9 @@ export default function RootLayout({
             <NavLink href="/patients" label="Patients" />
             <NavLink href="/admin" label="Admin" />
           </nav>
-          <main className="flex h-full bg-zinc-100">{children}</main>
+          <main className="flex h-full overflow-y-auto bg-zinc-100">
+            {children}
+          </main>
         </TRPCReactProvider>
       </body>
     </html>
