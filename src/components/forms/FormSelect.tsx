@@ -23,6 +23,7 @@ type FormSelectProps = {
     label: string;
   }[];
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export default function FormSelect({
@@ -30,6 +31,7 @@ export default function FormSelect({
   name,
   options,
   placeholder,
+  disabled,
 }: FormSelectProps) {
   const { isEditing, form } = useFormCtx();
 
@@ -41,7 +43,11 @@ export default function FormSelect({
         render={({ field }) => (
           <FormItem>
             <FormLabel>{label}</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select
+              disabled={disabled}
+              onValueChange={field.onChange}
+              defaultValue={field.value}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder={placeholder} />

@@ -1,7 +1,7 @@
 import { STATE_ABBREVIATIONS } from "@/lib/consts";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, X } from "lucide-react";
+import { EllipsisVertical, Pencil, Save, Trash, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -9,7 +9,14 @@ import { FormCtx } from "./forms/FormContext";
 import FormSelect from "./forms/FormSelect";
 import { FormTextInput } from "./forms/FormTextInput";
 import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { Form } from "./ui/form";
 
 export type Address = {
@@ -33,7 +40,7 @@ export default function AddressForm({
   patientId: string;
   isCreating: boolean;
   isOnlyAddress: boolean;
-  setIsCreating: (isCreating: boolean) => void;
+  setIsCreating?: (isCreating: boolean) => void;
 }) {
   const utils = api.useUtils();
   const addressFormSchema = z.object({
@@ -42,7 +49,9 @@ export default function AddressForm({
     city: z.string(),
     state: z.string(),
     zip: z.string().regex(/^\d{5}$/),
-    isPrimary: z.enum(["Yes", "No"]),
+    isPrimary: isOnlyAddress
+      ? z.enum(["Yes"]).optional().default("Yes")
+      : z.enum(["Yes", "No"]),
   });
 
   const addressDefaultValues: Partial<z.infer<typeof addressFormSchema>> = {
@@ -57,18 +66,23 @@ export default function AddressForm({
     addressDefaultValues.isPrimary = address.isPrimary ? "Yes" : "No";
   }
 
+  if (isOnlyAddress) {
+    addressDefaultValues.isPrimary = "Yes";
+  }
+
+  const [isEditing, setIsEditing] = useState(isCreating);
+
   useEffect(() => {
     if (addressDefaultValues && !isEditing) {
       form.reset(addressDefaultValues);
     }
-  }, [addressDefaultValues]);
+  }, [address, isEditing]);
 
   const form = useForm<z.infer<typeof addressFormSchema>>({
     resolver: zodResolver(addressFormSchema),
     defaultValues: addressDefaultValues,
   });
 
-  const [isEditing, setIsEditing] = useState(isCreating);
   const createAddressMutation = api.address.create.useMutation({
     onSuccess: () => {
       setIsEditing(false);
@@ -76,25 +90,75 @@ export default function AddressForm({
     },
   });
 
+  const updateAddressMutation = api.address.update.useMutation({
+    onSuccess: () => {
+      setIsEditing(false);
+      return utils.patient.invalidate();
+    },
+  });
+
+  const deleteAddressMutation = api.address.delete.useMutation({
+    onSuccess: () => {
+      return utils.patient.invalidate();
+    },
+  });
+
+  const onDelete = () => {
+    deleteAddressMutation.mutate(address?.id || "");
+  };
+
   const onSubmit = (data: z.infer<typeof addressFormSchema>) => {
     if (isCreating) {
       createAddressMutation.mutate({ ...data, patientId });
-      setIsCreating(false);
+      setIsCreating?.(false);
     } else {
-      // Update address
+      updateAddressMutation.mutate({
+        id: address?.id || "",
+        ...data,
+      });
     }
   };
 
   return (
     <Card>
-      <CardContent>
+      <CardHeader>
+        {!isEditing && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="self-end">
+              <EllipsisVertical className="h-5 w-5 " />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                className="flex flex-row gap-2"
+                onClick={() => {
+                  setIsEditing(true);
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+                <p>Edit</p>
+              </DropdownMenuItem>
+              {!isOnlyAddress && (
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="flex flex-row gap-2"
+                >
+                  <Trash className="h-4 w-4" />
+                  <p>Delete</p>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </CardHeader>
+      <CardContent className="flex flex-col">
         <FormCtx.Provider value={{ isEditing, form }}>
           <Form {...form}>
             <form
               className="flex flex-col gap-6"
               onSubmit={form.handleSubmit(onSubmit)}
             >
-              <div className=" grid grid-cols-3 gap-6 pt-8">
+              <div className=" grid grid-cols-3 gap-6">
                 <FormTextInput name="line1" label="Address line 1" />
                 <FormTextInput name="line2" label="Address line 2" />
                 <FormTextInput name="city" label="City" />
@@ -108,7 +172,7 @@ export default function AddressForm({
                   }))}
                 />
                 <FormTextInput name="zip" label="Zip code" />
-                {!isOnlyAddress && (
+                {
                   <FormSelect
                     name="isPrimary"
                     label="Primary address?"
@@ -116,11 +180,12 @@ export default function AddressForm({
                       { label: "Yes", value: "Yes" },
                       { label: "No", value: "No" },
                     ]}
+                    disabled={isOnlyAddress}
                   />
-                )}
+                }
               </div>
               {isEditing && (
-                <div className="flex flex-row self-end">
+                <div className="flex flex-row gap-2 self-end">
                   <Button
                     type="button"
                     variant="secondary"
@@ -128,7 +193,7 @@ export default function AddressForm({
                     icon={<X className="h-5 w-5" />}
                     onClick={() => {
                       if (isCreating) {
-                        setIsCreating(false);
+                        setIsCreating?.(false);
                       }
                       setIsEditing(false);
                     }}
@@ -137,7 +202,10 @@ export default function AddressForm({
                   </Button>
                   <Button
                     type="submit"
-                    loading={false}
+                    loading={
+                      createAddressMutation.isPending ||
+                      updateAddressMutation.isPending
+                    }
                     icon={<Save className="h-5 w-5" />}
                   >
                     Save

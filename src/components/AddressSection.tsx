@@ -23,7 +23,6 @@ export default function AddressSection({
           patientId={patientId}
           isCreating={false}
           isOnlyAddress={addresses.length === 1}
-          setIsCreating={() => {}}
         />
       ))}
       {isCreatingAddress ? (
