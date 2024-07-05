@@ -23,10 +23,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <body
         className={cn(
-          "flex flex-col  bg-background font-sans antialiased",
+          "flex h-full flex-col overflow-y-hidden  bg-background font-sans antialiased",
           fontSans.variable,
         )}
       >
@@ -36,7 +36,7 @@ export default function RootLayout({
             <NavLink href="/patients" label="Patients" />
             <NavLink href="/admin" label="Admin" />
           </nav>
-          <main className="flex h-full overflow-y-auto bg-zinc-100">
+          <main className="flex h-full w-full overflow-y-auto bg-zinc-100">
             {children}
           </main>
         </TRPCReactProvider>

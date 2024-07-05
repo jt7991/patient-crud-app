@@ -163,7 +163,7 @@ function PTable() {
   };
 
   return (
-    <div className="flex h-full w-full grow flex-col gap-4 p-10">
+    <div className="flex  w-full grow flex-col gap-4 p-10">
       <div className="flex w-full flex-row gap-4">
         <Input
           name="name"

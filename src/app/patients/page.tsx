@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 
 export default function Patients() {
   return (
-    <div className="flex h-full grow flex-col">
+    <div className="flex w-full flex-col">
       <div className="m-10 mb-0 flex flex-row justify-between">
         <h1 className="text-2xl font-bold"> Patients </h1>
         <a href="/patients/new" className="w-min self-end text-sm">
