@@ -61,7 +61,7 @@ export const patientRouter = createTRPCRouter({
         .object({
           sort: z
             .object({
-              field: z.enum(["name", "age", "status"]),
+              field: z.enum(["name", "dob", "city", "status"]),
               direction: z.enum(["asc", "desc"]),
             })
             .optional(),
@@ -69,6 +69,25 @@ export const patientRouter = createTRPCRouter({
             .object({
               status: z.enum([...PATIENT_STATUSES, "all"]).optional(),
               name: z.string().optional(),
+              city: z.string().optional(),
+              dob: z
+                .object({
+                  date: z
+                    .string()
+                    .transform((val) => dayjs(val).format("YYYY-MM-DD")),
+                  operator: z
+                    .enum(["Before", "After", "On"])
+                    .transform((val) => {
+                      if (val === "Before") {
+                        return "lt" as const;
+                      }
+                      if (val === "After") {
+                        return "gt" as const;
+                      }
+                      return "equals" as const;
+                    }),
+                })
+                .optional(),
             })
             .optional(),
         })
@@ -80,22 +99,18 @@ export const patientRouter = createTRPCRouter({
         case "name":
           orderBy = { lastName: input?.sort.direction };
           break;
-        case "age":
-          orderBy = {
-            dob:
-              input?.sort.direction === "desc"
-                ? ("asc" as const)
-                : ("desc" as const),
-          };
+        case "dob":
+          orderBy = { dob: input.sort.direction };
           break;
         case "status":
-          orderBy = { status: input?.sort.direction };
+          orderBy = { status: input.sort.direction };
+          break;
+        case "city":
+          orderBy = { primaryAddress: { city: input.sort.direction } };
           break;
         default:
           orderBy = { lastName: "desc" } as const;
       }
-
-      console.log("name", input?.filter?.name);
 
       const patients = await ctx.db.patient.findMany({
         orderBy,
@@ -107,14 +122,23 @@ export const patientRouter = createTRPCRouter({
           queryName: input?.filter?.name
             ? { contains: input?.filter?.name.toLowerCase().replace(/\s/g, "") }
             : undefined,
+          // Search is case sensitive
+          primaryAddress: input?.filter?.city
+            ? { city: { contains: input?.filter?.city } }
+            : undefined,
+          dob: input?.filter?.dob
+            ? { [input.filter.dob.operator]: input.filter.dob.date }
+            : undefined,
         },
+        include: { primaryAddress: { select: { city: true } } },
       });
 
       return patients.map((patient) => ({
         name: `${patient.lastName}, ${patient.firstName}`,
-        age: dayjs().diff(patient.dob, "year"),
+        dob: dayjs(patient.dob).format("MM/DD/YYYY"),
         status: z.enum(PATIENT_STATUSES).parse(patient.status),
         id: patient.id,
+        city: patient.primaryAddress?.city || "",
       }));
     }),
 

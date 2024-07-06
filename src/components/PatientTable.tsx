@@ -3,6 +3,7 @@ import { PATIENT_STATUSES } from "@/lib/consts";
 import { api } from "@/trpc/react";
 import { ColumnDef, HeaderContext, SortingState } from "@tanstack/react-table";
 import { useDebounce } from "@uidotdev/usehooks";
+import dayjs from "dayjs";
 import {
   ArrowDownWideNarrow,
   ArrowUpDown,
@@ -30,7 +31,8 @@ type PatientListItem = {
   id: string;
   name: string;
   status: (typeof PATIENT_STATUSES)[number];
-  age: number;
+  dob: string;
+  city: string;
 };
 
 const getHeader = (label: string) => {
@@ -58,7 +60,8 @@ const columns: ColumnDef<PatientListItem>[] = [
     accessorKey: "name",
     header: getHeader("Name"),
   },
-  { accessorKey: "age", header: getHeader("Age") },
+  { accessorKey: "dob", header: getHeader("Date of birth") },
+  { accessorKey: "city", header: getHeader("City") },
   {
     accessorKey: "status",
     header: getHeader("Status"),
@@ -78,12 +81,17 @@ const columns: ColumnDef<PatientListItem>[] = [
   },
 ];
 
-const urlParamsSchema = z.object({
-  sortBy: z.enum(["name", "age", "status", ""]).nullish(),
-  sortDirection: z.enum(["asc", "desc", ""]).nullish(),
-  status: z.enum([...PATIENT_STATUSES, "all", ""]).nullish(),
-  name: z.string().nullish(),
-});
+const urlParamsSchema = z
+  .object({
+    sortBy: z.enum(["name", "dob", "city", "status", ""]).nullish(),
+    sortDirection: z.enum(["asc", "desc", ""]).nullish(),
+    status: z.enum([...PATIENT_STATUSES, "all", ""]).nullish(),
+    name: z.string().nullish(),
+    city: z.string().nullish(),
+    dob: z.string().nullish(),
+    dobOperator: z.enum(["Before", "After", "On", ""]).nullish(),
+  })
+  .optional();
 
 function PTable() {
   const router = useRouter();
@@ -91,30 +99,43 @@ function PTable() {
   const searchParams = useSearchParams();
 
   const sortBy = searchParams.get("sortBy");
+  2022;
   const sortDirection = searchParams.get("sortDirection");
   const status = searchParams.get("status");
   const nameParam = searchParams.get("name");
+  const cityParam = searchParams.get("city");
+  const dobParam = searchParams.get("dob");
+  const dobOperator = searchParams.get("dobOperator");
 
   const [name, setName] = useState(nameParam);
+  const [city, setCity] = useState(cityParam);
+  const [dob, setDob] = useState(dobParam);
   const debouncedName = useDebounce(name, 300);
+  const debouncedCity = useDebounce(city, 300);
 
   useEffect(() => {
     const search = new URLSearchParams(searchParams);
     search.set("name", debouncedName || "");
+    search.set("city", debouncedCity || "");
+    if (dayjs(dob).format("MM/DD/YYYY") === dob || !dob) {
+      search.set("dob", dob || "");
+    }
     router.push(pathname + "?" + search.toString());
-  }, [debouncedName]);
+  }, [debouncedName, debouncedCity, dob]);
 
   const { error: paramsParseError, data: parsedParams } =
     urlParamsSchema.safeParse({
       sortBy,
       sortDirection,
       status,
+      city: debouncedCity,
       name: debouncedName,
+      dob: dobParam,
+      dobOperator,
     });
 
   useEffect(() => {
     if (paramsParseError) {
-      console.error(paramsParseError);
       router.push(pathname);
     }
   }, [paramsParseError]);
@@ -127,6 +148,13 @@ function PTable() {
     filter: {
       name: parsedParams?.name || undefined,
       status: parsedParams?.status || undefined,
+      city: parsedParams?.city || undefined,
+      dob: parsedParams?.dob
+        ? {
+            date: parsedParams?.dob,
+            operator: parsedParams?.dobOperator || "On",
+          }
+        : undefined,
     },
   });
 
@@ -142,29 +170,28 @@ function PTable() {
       state = stateOrFn;
     }
 
-    const searchParams = new URLSearchParams();
-    searchParams.set("sortBy", state[0]?.id || "");
-    searchParams.set("sortDirection", state[0]?.desc ? "desc" : "asc");
+    const search = new URLSearchParams(searchParams);
+    search.set("sortBy", state[0]?.id || "");
+    search.set("sortDirection", state[0]?.desc ? "desc" : "asc");
 
-    if (status) {
-      searchParams.set("status", status);
-    }
-
-    if (name) {
-      searchParams.set("name", name);
-    }
-
-    const search = searchParams.toString();
-    router.push(pathname + (search ? "?" + search : ""));
+    router.push(pathname + "?" + search.toString());
   };
 
   const nameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   };
 
+  const cityOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCity(event.target.value);
+  };
+
+  const dobOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDob(event.target.value);
+  };
+
   return (
     <div className="flex  w-full grow flex-col gap-4 p-10">
-      <div className="flex w-full flex-row gap-4">
+      <div className="grid w-full grid-cols-3 flex-row gap-4">
         <Input
           name="name"
           placeholder="Search by name..."
@@ -172,31 +199,78 @@ function PTable() {
           onChange={nameOnChange}
           value={name || ""}
         />
-        <div className="flex flex-row gap-4">
+        <Input
+          name="city"
+          placeholder="Search by city..."
+          className="flex flex-grow flex-row"
+          onChange={cityOnChange}
+          value={city || ""}
+        />
+        <Select
+          onValueChange={(val) => {
+            const searchParams = new URLSearchParams();
+            searchParams.set("status", val);
+            router.push(pathname + "?" + searchParams.toString());
+          }}
+          value={status || "all"}
+        >
+          <SelectTrigger className="min-w-64">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Status</SelectLabel>
+              <SelectItem value="all">All statuses</SelectItem>
+              {PATIENT_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <div className="col-span-2 flex flex-row items-center gap-2">
+          <p className="whitespace-nowrap text-sm font-semibold">
+            Date of birth:
+          </p>
           <Select
             onValueChange={(val) => {
-              const searchParams = new URLSearchParams();
-              searchParams.set("status", val);
-              router.push(pathname + "?" + searchParams.toString());
+              const search = new URLSearchParams(searchParams);
+              search.set("dobOperator", val);
+              router.push(pathname + "?" + search.toString());
             }}
-            value={status || "all"}
+            value={dobOperator || ""}
           >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
+            <SelectTrigger className="min-w-32">
+              <SelectValue placeholder="Select operator" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
-                <SelectItem value="all">All statuses</SelectItem>
-                {PATIENT_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Before">Before</SelectItem>
+                <SelectItem value="On">On</SelectItem>
+                <SelectItem value="After">After</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
+          <Input
+            name="dob"
+            placeholder="MM/DD/YYYY"
+            className="flex w-fit flex-row"
+            onChange={dobOnChange}
+            value={dob || ""}
+          />
         </div>
+        <Button
+          onClick={() => {
+            router.push(pathname);
+            setDob("");
+            setName("");
+            setCity("");
+          }}
+          variant="secondary"
+        >
+          Clear filters
+        </Button>
       </div>
       <DataTable
         sortState={[
