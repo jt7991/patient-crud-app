@@ -22,7 +22,7 @@ import { Form } from "./ui/form";
 export type Address = {
   id: string;
   line1: string;
-  line2?: string;
+  line2?: string | null;
   city: string;
   state: string;
   zip: string;
